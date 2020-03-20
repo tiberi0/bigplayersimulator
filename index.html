@@ -1,32 +1,47 @@
 <html>
   <head>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
     <script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
-      var myVar = setInterval(alertFunc, 1000);
+      
+
+      var myVar;// = setInterval(alertFunc, 1000);
       var candleTick = 0;
       var candles = [['0',15,15,15,15]]
+      var bookOfertas = []
       var ultimPreco = 1500;
       var tick = 0;
 
+      function startTrade(){
+        inicarVariaveis();
+        iniciarBook();
+        google.charts.load('current', {'packages':['corechart','table']});
+        google.charts.setOnLoadCallback(drawChart);      
+        google.charts.setOnLoadCallback(drawTable);
+        myVar = setInterval(alertFunc, 1000);
+      }
+
         function stopTrade(){
-            clearInterval(myVar);
+            if(myVar)
+              clearInterval(myVar);
         }
 
         function alertFunc() {
             
             //ultimPreco = ultimPreco-5;
-            var randOk = Math.floor(Math.random() * 3)
-            console.log(randOk)
-            var price = ultimPreco;
-            if(randOk==0)
-                price = price-1;//randOk
-            if(randOk==1)
-                price = price+1;//+randOk-5
+            // var randOk = Math.floor(Math.random() * 3)
+            // //console.log(randOk)
+            // var price = ultimPreco;
+            // if(randOk==0)
+            //     price = price-1;//randOk
+            // if(randOk==1)
+            //     price = price+1;//+randOk-5
             
-            ultimPreco = price;
-            price = price/100;
+            //ultimPreco = price;
+            var price = ultimPreco/100;
             
             if(candles[candleTick][1]> price)
                 candles[candleTick][1] = price
@@ -43,7 +58,10 @@
                 candles.push([(candleTick*20).toString(),price,price,price,price])
             }
 
+            lancarOrdensNoBook()
+
             drawChart();
+            drawTable();
         }
 
         function drawChart() {
@@ -58,12 +76,100 @@
                 chart.draw(data, options);
             }
 
-    
+            function drawTable() {
+              var data = new google.visualization.DataTable();
+              data.addColumn('string', 'C');
+              data.addColumn('string', 'qtd');
+              data.addColumn('string', 'Preço');
+              data.addColumn('string', 'Preço');
+              data.addColumn('string', 'qtd');
+              data.addColumn('string', 'V');
+
+              var tempBookOfertas = []
+              for(var i  = 0 ; i < 10; i++){
+                tempBookOfertas.push(['V',bookOfertas[i][1].toString(),bookOfertas[i][2].toString(),'','','']);
+              }
+
+              for(var j  = 10 ; j < 20; j++){
+                tempBookOfertas.push(['','','',bookOfertas[j][3].toString(),bookOfertas[j][4].toString(),'C']);
+              }
+              data.addRows(tempBookOfertas);              
+
+              var table = new google.visualization.Table(document.getElementById('table_div'));
+
+              table.draw(data, {showRowNumber: true, width: '100%', height: '100%'});
+            }
+
+            function inicarVariaveis(){
+              var ab = $('#valorAbertura').val()
+              ultimPreco = parseInt(ab)*100              
+              candles[0][1] = ultimPreco/100
+              candles[0][2] = ultimPreco/100
+              candles[0][3] = ultimPreco/100
+              candles[0][4] = ultimPreco/100
+              
+            }
+
+            function iniciarBook(){
+                for(var i = 0 ; i < 10; i++){
+                    bookOfertas.push(['V',0,ultimPreco,0,0,'C'])
+                }
+
+                for(var j = 10 ; j < 20; j++){
+                    bookOfertas.push(['V',0,0,ultimPreco,0,'C'])
+                }
+            }
+
+            function lancarOrdensNoBook(){
+                var precoCorrente = ultimPreco;
+
+                //LANCAR RANDOMICO DE TENDENCIA E BOTAR NO PESO DA QTD
+
+                //BOOK DE VEDNA
+                for(var i = 0 ; i < 10; i++){
+                    bookOfertas[i][1] = bookOfertas[i][1] + (Math.floor(Math.random() * 10) );
+                    bookOfertas[i][2] = precoCorrente - i +9;
+                }
+
+                //BOOK DE COMPRA
+                for(var j = 0 ; j < 10; j++){
+                    bookOfertas[j+10][4] = bookOfertas[j+10][4] + (Math.floor(Math.random() * 10) );
+                    bookOfertas[j+10][3] = precoCorrente + j ;
+                } 
+            }
+
+            function liquidarNegocios(){
+              var randOk = Math.floor(Math.random() * 3)
+              //console.log(randOk)
+              var price = ultimPreco;
+              if(randOk==0)
+                  price = price-1;//randOk
+              if(randOk==1)
+                  price = price+1;//+randOk-5
+                // //LIQUIDANDO NEGOCIOS
+                // if(bookOfertas[10][1] > bookOfertas[11][4]){
+                //   //Tem mais venda q compra
+                //   bookOfertas[10][1] -= bookOfertas[11][4]
+                //   bookOfertas[11][4] = 0;
+
+                // }else if(bookOfertas[10][1] < bookOfertas[11][4]){
+                //   //Tem mais Compra q venda
+                //   bookOfertas[11][4] -= bookOfertas[10][1]
+                //   bookOfertas[10][1] = 0
+                // }else{
+                //   //Mesma quantidade de compra venda
+                // }
+
+            }
     </script>
   </head>
   <body>
-    <div id="chart_div" style="width: 900px; height: 500px;"></div>
-    
+    <label for='valorAbertura'>VALOR ABERTURA:</label>
+    <input type='text' value="15" id='valorAbertura'>
+    <input type="button" onclick="startTrade()" value="START"/>
     <input type="button" onclick="stopTrade()" value="STOP"/>
+    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+    <div id="table_div" style="width: 400px; height: 500px;"></div>
+    
   </body>
 </html>
