@@ -1,17 +1,15 @@
 <html>
   <head>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script
-  src="https://code.jquery.com/jquery-3.4.1.min.js"
-  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
-  crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
     <script type="text/javascript">
-      
 
       var myVar;// = setInterval(alertFunc, 1000);
       var candleTick = 0;
       var candles = [['0',15,15,15,15]]
-      var bookOfertas = []
+      var bookOfertasCompra = []
+      var bookOfertasVenda = []
+      var negocios = []
       var ultimPreco = 1500;
       var tick = 0;
 
@@ -61,7 +59,8 @@
             lancarOrdensNoBook()
 
             drawChart();
-            drawTable();
+            drawTable(bookOfertasCompra,'Compra');
+            drawTable(bookOfertasVenda,'Venda');
         }
 
         function drawChart() {
@@ -76,28 +75,46 @@
                 chart.draw(data, options);
             }
 
-            function drawTable() {
-              var data = new google.visualization.DataTable();
-              data.addColumn('string', 'C');
-              data.addColumn('string', 'qtd');
-              data.addColumn('string', 'Preço');
-              data.addColumn('string', 'Preço');
-              data.addColumn('string', 'qtd');
-              data.addColumn('string', 'V');
+            function drawTable(bookOfertas,tipo) {
+              if(tipo==undefined)
+                return
+
+              var data = new google.visualization.DataTable();  
+              var cor = 'red'
+              if(tipo == "Compra"){
+                data.addColumn('string', 'QTD');
+                data.addColumn('string', 'Preço');              
+                var cor = 'blue'
+              }else{
+                data.addColumn('string', 'Preço');              
+                data.addColumn('string', 'QTD');
+              }
 
               var tempBookOfertas = []
               for(var i  = 0 ; i < 10; i++){
-                tempBookOfertas.push(['V',bookOfertas[i][1].toString(),bookOfertas[i][2].toString(),'','','']);
+                if(tipo=="Compra"){
+                  tempBookOfertas.push([bookOfertas[i][0].toString(),bookOfertas[i][1].toString()]);
+                }else{
+                  tempBookOfertas.push([bookOfertas[i][1].toString(),bookOfertas[i][0].toString()]);
+                }
               }
 
-              for(var j  = 10 ; j < 20; j++){
-                tempBookOfertas.push(['','','',bookOfertas[j][3].toString(),bookOfertas[j][4].toString(),'C']);
-              }
               data.addRows(tempBookOfertas);              
 
-              var table = new google.visualization.Table(document.getElementById('table_div'));
+              var table = new google.visualization.Table(document.getElementById('table_div'+tipo));
 
-              table.draw(data, {showRowNumber: true, width: '100%', height: '100%'});
+              
+              table.draw(data, 
+                {
+                  showRowNumber: false,
+                  allowHtml: true,
+                  cssClassNames: {    
+                    oddTableRow: 'tableRow'+cor,
+                    tableRow: 'tableRow'+cor
+                  } , 
+                  width: '100%', 
+                  height: '100%'
+                });
             }
 
             function inicarVariaveis(){
@@ -111,41 +128,48 @@
             }
 
             function iniciarBook(){
-                for(var i = 0 ; i < 10; i++){
-                    bookOfertas.push(['V',0,ultimPreco,0,0,'C'])
-                }
-
-                for(var j = 10 ; j < 20; j++){
-                    bookOfertas.push(['V',0,0,ultimPreco,0,'C'])
+                for(var i = 0 ; i < 11; i++){
+                    bookOfertasCompra.push([0,ultimPreco-1])
+                    bookOfertasVenda.push([0,ultimPreco+1])
                 }
             }
 
             function lancarOrdensNoBook(){
                 var precoCorrente = ultimPreco;
-
-                //LANCAR RANDOMICO DE TENDENCIA E BOTAR NO PESO DA QTD
-
-                //BOOK DE VEDNA
+                //LANCAR RANDOMICO DE TENDENCIA E BOTAR NO PESO DA QTD               
                 for(var i = 0 ; i < 10; i++){
-                    bookOfertas[i][1] = bookOfertas[i][1] + (Math.floor(Math.random() * 10) );
-                    bookOfertas[i][2] = precoCorrente - i +9;
-                }
+                    bookOfertasCompra[i][0] = bookOfertasCompra[i][0] + (Math.floor(Math.random() * 10) );
+                    //bookOfertasCompra[i][1] = precoCorrente -1 - i;
 
-                //BOOK DE COMPRA
-                for(var j = 0 ; j < 10; j++){
-                    bookOfertas[j+10][4] = bookOfertas[j+10][4] + (Math.floor(Math.random() * 10) );
-                    bookOfertas[j+10][3] = precoCorrente + j ;
-                } 
+                    bookOfertasVenda[i][0] = bookOfertasVenda[i][0] + (Math.floor(Math.random() * 10) );
+                    //bookOfertasVenda[i][1] = precoCorrente +1 + i ;
+                }
+                liquidarNegocios();
             }
 
             function liquidarNegocios(){
               var randOk = Math.floor(Math.random() * 3)
               //console.log(randOk)
               var price = ultimPreco;
-              if(randOk==0)
-                  price = price-1;//randOk
-              if(randOk==1)
-                  price = price+1;//+randOk-5
+              if(randOk==0){
+                //price = price-1;//randOk
+                //VENDER A MERCADO
+                for(var i = 0 ; i < 10; i++){
+                    if(i+1 <10){
+                      bookOfertasCompra[i] = bookOfertasCompra[i+1]
+                    }else{
+                      bookOfertasCompra[i][0] = 0//push([0,bookOfertasCompra[i][1]+1])
+                      bookOfertasCompra[i][1] = bookOfertasCompra[i][1]-1
+                    }
+                }
+                ultimPreco--;
+              }
+              if(randOk==1){
+                //price = price+1;//+randOk-5
+                //COMPRAR A MERCADO 
+
+                ultimPreco++;
+              }
                 // //LIQUIDANDO NEGOCIOS
                 // if(bookOfertas[10][1] > bookOfertas[11][4]){
                 //   //Tem mais venda q compra
@@ -162,6 +186,18 @@
 
             }
     </script>
+    <style>
+      
+    .google-visualization-table-td {
+      text-align: center;
+    }
+    .tableRowblue{
+      color:blue
+    }
+    .tableRowred{
+      color:red
+    }
+    </style>
   </head>
   <body>
     <label for='valorAbertura'>VALOR ABERTURA:</label>
@@ -169,7 +205,8 @@
     <input type="button" onclick="startTrade()" value="START"/>
     <input type="button" onclick="stopTrade()" value="STOP"/>
     <div id="chart_div" style="width: 900px; height: 500px;"></div>
-    <div id="table_div" style="width: 400px; height: 500px;"></div>
+    <div id="table_divCompra" style="width: 150px; height: 300px; display: table-cell;"></div>
+    <div id="table_divVenda" style="width: 150px; height: 300px; display: table-cell;"></div>
     
   </body>
 </html>
