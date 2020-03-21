@@ -7,11 +7,11 @@
       var myVar;// = setInterval(alertFunc, 1000);
       var candleTick = 0;
       var candles = [['0',15,15,15,15]]
-      var bookOfertasCompra = []
-      var bookOfertasVenda = []
-      var negocios = []
-      var ultimPreco = 1500;
+      var bookBuffer = []      
+      var negocios = [['0',0]]
+      var ultimoPreco = 1500;
       var tick = 0;
+      var compraMercadoValor = 0;
 
       function startTrade(){
         inicarVariaveis();
@@ -29,17 +29,12 @@
 
         function alertFunc() {
             
-            //ultimPreco = ultimPreco-5;
-            // var randOk = Math.floor(Math.random() * 3)
-            // //console.log(randOk)
-            // var price = ultimPreco;
-            // if(randOk==0)
-            //     price = price-1;//randOk
-            // if(randOk==1)
-            //     price = price+1;//+randOk-5
-            
-            //ultimPreco = price;
-            var price = ultimPreco/100;
+            lancarOrdensNoBook()
+
+            drawTable('Compra'); 
+            drawTable('Venda'); 
+
+            var price = ultimoPreco/100;
             
             if(candles[candleTick][1]> price)
                 candles[candleTick][1] = price
@@ -54,13 +49,10 @@
                 tick = 0;              
                 candleTick++; 
                 candles.push([(candleTick*20).toString(),price,price,price,price])
+                negocios.push([(candleTick*20).toString(),0])
             }
 
-            lancarOrdensNoBook()
-
-            drawChart();
-            drawTable(bookOfertasCompra,'Compra');
-            drawTable(bookOfertasVenda,'Venda');
+            drawChart();             
         }
 
         function drawChart() {
@@ -73,9 +65,14 @@
                 var chart = new google.visualization.CandlestickChart(document.getElementById('chart_div'));
 
                 chart.draw(data, options);
+
+                var data1 = google.visualization.arrayToDataTable(negocios,true);
+                var chart1 = new google.visualization.ColumnChart(document.getElementById("columnchart_values"));
+                chart1.draw(data1, options);
+
             }
 
-            function drawTable(bookOfertas,tipo) {
+            function drawTable(tipo) {
               if(tipo==undefined)
                 return
 
@@ -93,9 +90,9 @@
               var tempBookOfertas = []
               for(var i  = 0 ; i < 10; i++){
                 if(tipo=="Compra"){
-                  tempBookOfertas.push([bookOfertas[i][0].toString(),bookOfertas[i][1].toString()]);
+                  tempBookOfertas.push([bookBuffer[24-i][0].toString(),bookBuffer[24-i][1].toString()]);
                 }else{
-                  tempBookOfertas.push([bookOfertas[i][1].toString(),bookOfertas[i][0].toString()]);
+                  tempBookOfertas.push([bookBuffer[26+i][1].toString(),bookBuffer[26+i][0].toString()]);
                 }
               }
 
@@ -106,7 +103,7 @@
               
               table.draw(data, 
                 {
-                  showRowNumber: false,
+                  showRowNumber: true,
                   allowHtml: true,
                   cssClassNames: {    
                     oddTableRow: 'tableRow'+cor,
@@ -119,56 +116,82 @@
 
             function inicarVariaveis(){
               var ab = $('#valorAbertura').val()
-              ultimPreco = parseInt(ab)*100              
-              candles[0][1] = ultimPreco/100
-              candles[0][2] = ultimPreco/100
-              candles[0][3] = ultimPreco/100
-              candles[0][4] = ultimPreco/100
+              ultimoPreco = parseInt(ab)*100              
+              candles[0][1] = ultimoPreco/100
+              candles[0][2] = ultimoPreco/100
+              candles[0][3] = ultimoPreco/100
+              candles[0][4] = ultimoPreco/100
               
             }
 
             function iniciarBook(){
-                for(var i = 0 ; i < 11; i++){
-                    bookOfertasCompra.push([0,ultimPreco-1])
-                    bookOfertasVenda.push([0,ultimPreco+1])
+                for(var i = 0 ; i < 50; i++){
+                    bookBuffer.push([i,ultimoPreco-25+i])                    
                 }
             }
 
             function lancarOrdensNoBook(){
-                var precoCorrente = ultimPreco;
-                //LANCAR RANDOMICO DE TENDENCIA E BOTAR NO PESO DA QTD               
-                for(var i = 0 ; i < 10; i++){
-                    bookOfertasCompra[i][0] = bookOfertasCompra[i][0] + (Math.floor(Math.random() * 10) );
-                    //bookOfertasCompra[i][1] = precoCorrente -1 - i;
-
-                    bookOfertasVenda[i][0] = bookOfertasVenda[i][0] + (Math.floor(Math.random() * 10) );
-                    //bookOfertasVenda[i][1] = precoCorrente +1 + i ;
-                }
-                liquidarNegocios();
+                //var precoCorrente = ultimoPreco;
+                liquidarNegocios();  
+                //LANCAR RANDOMICO DE TENDENCIA E BOTAR NO PESO DO PRECO            
+                for(var i = 0 ; i < 50; i++){
+                  bookBuffer[i][0] = bookBuffer[i][0] + (Math.floor(Math.random() * 10) );                    
+                }                            
             }
 
             function liquidarNegocios(){
-              var randOk = Math.floor(Math.random() * 3)
-              //console.log(randOk)
-              var price = ultimPreco;
+              var randOk = Math.floor(Math.random() * 3)              
+              //var compraMercadoValor = parseInt($('#compraMercado').val());
               if(randOk==0){
                 //price = price-1;//randOk
-                //VENDER A MERCADO
-                for(var i = 0 ; i < 10; i++){
-                    if(i+1 <10){
-                      bookOfertasCompra[i] = bookOfertasCompra[i+1]
-                    }else{
-                      bookOfertasCompra[i][0] = 0//push([0,bookOfertasCompra[i][1]+1])
-                      bookOfertasCompra[i][1] = bookOfertasCompra[i][1]-1
-                    }
+                //VENDER A MERCADO                
+                while(true){                              
+                  var tempBuffer = []
+                  var negociosAgora = bookBuffer[26][0];
+                  negocios[candleTick.toString()][1] = negocios[candleTick.toString()][1] + negociosAgora
+                  bookBuffer[26][0] = 0;                               
+
+                  ultimoPreco = ultimoPreco-1; 
+                  tempBuffer.push([0,ultimoPreco-25])
+                  for(var i = 0 ; i < 49; i++){
+                    tempBuffer.push(bookBuffer[i])
+                  }
+                  bookBuffer = tempBuffer;     
+                  compraMercadoValor = compraMercadoValor - negociosAgora
+                  if(compraMercadoValor<0){
+                    compraMercadoValor = 0;
+                    //$('#compraMercado').val('0')
+                    break;
+                  }else{
+                    $('#compraMercado').val('0')
+                  }
                 }
-                ultimPreco--;
               }
               if(randOk==1){
                 //price = price+1;//+randOk-5
                 //COMPRAR A MERCADO 
-
-                ultimPreco++;
+                while(true){      
+                  var tempBuffer = []
+                  
+                  var negociosAgora = bookBuffer[24][0];
+                  negocios[candleTick.toString()][1] = negocios[candleTick.toString()][1] + negociosAgora
+                  bookBuffer[24][0] = 0;
+                  ultimoPreco = ultimoPreco+1;
+                  for(var i = 0 ; i < 49; i++){
+                    tempBuffer.push(bookBuffer[i+1])
+                  }
+                  tempBuffer.push([0,ultimoPreco+25])
+                  bookBuffer = tempBuffer; 
+                  compraMercadoValor = compraMercadoValor - negociosAgora
+                  if(compraMercadoValor<0){
+                    compraMercadoValor = 0;
+                    //$('#compraMercado').val('0')
+                    break;
+                  } else{
+                    $('#compraMercado').val('0')
+                  }
+                }
+                
               }
                 // //LIQUIDANDO NEGOCIOS
                 // if(bookOfertas[10][1] > bookOfertas[11][4]){
@@ -184,6 +207,10 @@
                 //   //Mesma quantidade de compra venda
                 // }
 
+            }
+
+            function comprarMercado(){
+              compraMercadoValor = $('#compraMercado').val()
             }
     </script>
     <style>
@@ -204,7 +231,10 @@
     <input type='text' value="15" id='valorAbertura'>
     <input type="button" onclick="startTrade()" value="START"/>
     <input type="button" onclick="stopTrade()" value="STOP"/>
-    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+    <input type='text' value="0" id='compraMercado'>
+    <input type="button" onclick="comprarMercado()" value="COMPRAR MERCADO"/>
+    <div id="chart_div" style="width: 400px; height: 500px;"></div>
+    <div id="columnchart_values" style="width: 400px; height: 100px;"></div>
     <div id="table_divCompra" style="width: 150px; height: 300px; display: table-cell;"></div>
     <div id="table_divVenda" style="width: 150px; height: 300px; display: table-cell;"></div>
     
