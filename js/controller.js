@@ -8,6 +8,11 @@ var negocios = [['0',0]]
 var ultimoPreco = 1500;
 var tick = 0;
 var compraMercadoValor = 0;
+var valorDisponivel = 1000000000;
+var qtdEmCarteira = 0;
+
+$('#valorDisponivel').html(kFormatter(valorDisponivel))
+$('#qtdEmCarteira').html(kFormatter(qtdEmCarteira))
 
 //Função para preparar o inicio da simulação
 function playPauseSimulator(){    
@@ -69,6 +74,9 @@ function tradeMonitor() {
     drawTable('Compra'); 
     drawTable('Venda'); 
 
+    $('#valorDisponivel').html(kFormatter(valorDisponivel))
+    $('#qtdEmCarteira').html(kFormatter(qtdEmCarteira))
+
     var price = ultimoPreco/100;
     
     if(candles[candleTick][1]> price)
@@ -89,7 +97,7 @@ function tradeMonitor() {
 
     drawChart();  
 
-    $('#precoCorrente').html('R$ ' + (price.toFixed(2)));
+    $('#precoCorrente').html((price.toFixed(2)));
     var ab = 15//$('#valorAbertura').val()
     tempProc = parseInt(ab)*100   
     var variac = (((price/ab)*100)-100).toFixed(2);            
@@ -119,7 +127,7 @@ function drawTable(tipo) {
     }
 
     var tempBookOfertas = []
-    for(var i  = 0 ; i < 10; i++){
+    for(var i  = 0 ; i < 5; i++){
       if(tipo=="Compra"){
         tempBookOfertas.push([kFormatter(bookBuffer[24-i][0]).toString(),bookBuffer[24-i][1].toString()]);
       }else{
@@ -168,15 +176,18 @@ function liquidarNegocios(){
   if(randOk==0){
     //price = price-1;//randOk
     //VENDER A MERCADO    
-    var tentativas = 20;
+    var tentativas = 50;
 
     while(true){        
       tentativas--;                      
       var tempBuffer = []
       var negociosAgora = bookBuffer[26][0];
       //console.log(negociosAgora)
-      //if(tentativas<0 && negociosAgora==0)
-      //  break;
+      if(tentativas<0 && negociosAgora==0){
+        comprarMercado = 0;
+        break;
+      }
+              
       negocios[candleTick.toString()][1] = negocios[candleTick.toString()][1] + negociosAgora
       bookBuffer[26][0] = 0;                               
 
@@ -187,7 +198,8 @@ function liquidarNegocios(){
       }
       bookBuffer = tempBuffer;     
       compraMercadoValor = compraMercadoValor - negociosAgora
-      if(compraMercadoValor<0){
+      
+      if(compraMercadoValor<0 || isNaN(compraMercadoValor)){
         compraMercadoValor = 0;
         //$('#compraMercado').val('0')
         break;
@@ -197,16 +209,18 @@ function liquidarNegocios(){
   if(randOk==1){
     //price = price+1;//+randOk-5
     //COMPRAR A MERCADO 
-    var tentativas = 20;
+    var tentativas = 50;
     while(true){      
       tentativas--;
       
       var tempBuffer = []
       
       var negociosAgora = bookBuffer[24][0];
-      console.log(negociosAgora)
-      //if(tentativas<0 && negociosAgora == 0)
-      //  break;
+      //console.log(negociosAgora)
+      if(tentativas<0 && negociosAgora == 0){
+        comprarMercado = 0;
+        break;
+      }
       negocios[candleTick.toString()][1] = negocios[candleTick.toString()][1] + negociosAgora
       bookBuffer[24][0] = 0;
       ultimoPreco = ultimoPreco+1;
@@ -215,8 +229,8 @@ function liquidarNegocios(){
       }
       tempBuffer.push([0,ultimoPreco+25])
       bookBuffer = tempBuffer; 
-      compraMercadoValor = compraMercadoValor - negociosAgora
-      if(compraMercadoValor<0){
+      compraMercadoValor = compraMercadoValor - negociosAgora      
+      if(compraMercadoValor<0 || isNaN(compraMercadoValor)){
         compraMercadoValor = 0;
         //$('#compraMercado').val('0')
         break;
@@ -246,20 +260,88 @@ function drawChart() {
     dataCandle = google.visualization.arrayToDataTable(candles, true);
 
     var options = {
-    legend:'none'
+      legend:'none',
+      candlestick: {
+        hollowIsRising:true,
+        fallingColor: { stroke:'#4e73df', strokeWidth: 0, fill: '#4e73df' }, // red
+        risingColor: {stroke:'#FF1493', strokeWidth: 0, fill: '#FF1493' }   // green
+      }
     };
 
     var chart = new google.visualization.CandlestickChart(document.getElementById('chart_div'));
 
     chart.draw(dataCandle, options);
 
-    // var data1 = google.visualization.arrayToDataTable(negocios,true);
-    // var chart1 = new google.visualization.ColumnChart(document.getElementById("columnchart_values"));
-    // chart1.draw(data1, options);
+    $('#columnchart_values').show();
+    var data1 = google.visualization.arrayToDataTable(negocios,true);
+    var chart1 = new google.visualization.ColumnChart(document.getElementById("columnchart_values"));
+    chart1.draw(data1, options);
 }
 
+function comprarMercado(){
+  try{
+    var tempVol = parseInt($('#volume').val())    
+    if(isNaN(tempVol))
+      alert("Valor incompativel")
+    valorDaAquisicao = tempVol*(ultimoPreco/100);
+    if(valorDisponivel<valorDaAquisicao){
+      alert('Sem grana')
+    }else{
+      compraMercadoValor = tempVol
+      valorDisponivel = valorDisponivel-valorDaAquisicao
+      qtdEmCarteira += tempVol;
+    }
+  }catch(ee){
+
+  }
+}
+
+function venderMercado(){
+  //compraMercadoValor = parseInt($('#volume').val())*-1
+  try{
+    var tempVol = parseInt($('#volume').val())    
+    if(isNaN(tempVol)){
+      alert("Valor incompativel")
+      return
+    }
+    valorDaAquisicao = tempVol*(ultimoPreco/100);
+    if(valorDisponivel<valorDaAquisicao){
+      alert('Sem grana')
+    }else{
+      compraMercadoValor = tempVol*-1
+      valorDisponivel = valorDisponivel+valorDaAquisicao
+      qtdEmCarteira -= tempVol;
+    }
+  }catch(ee){
+
+  }
+}
+
+function lancarOrdemPendente(){
+  var tempVol = parseInt($('#volume').val())
+  var tempPrec = parseInt($('#preco').val())
+  if(isNaN(tempVol) || isNaN(tempPrec)){
+    alert('Valores Incompativeis')
+    return
+  }
+  console.log(tempPrec)
+  for(var i = 0 ; i < 50; i++){
+    if(bookBuffer[i][1]==tempPrec){
+      bookBuffer[i][0] = bookBuffer[i][0] + tempVol
+      break;
+    }
+  }
+}
 
 //FUNCOES AUXILIARES
 function kFormatter(num) {
-    return Math.abs(num) > 999 ? Math.sign(num)*((Math.abs(num)/1000).toFixed(1)) + 'k' : Math.sign(num)*Math.abs(num)
+    var tempNum = Math.abs(num)
+    if(tempNum<999)
+      return Math.sign(num)*Math.abs(num)
+    else if(tempNum > 999 && tempNum < 999999)
+      return Math.sign(num)*((Math.abs(num)/1000).toFixed(1)) + ' k'
+    else if(tempNum>999999 && tempNum < 999999999)
+      return Math.sign(num)*((Math.abs(num)/1000000).toFixed(1)) + ' mi'
+    else 
+      return Math.sign(num)*((Math.abs(num)/1000000000).toFixed(1)) + ' bi'
 }
