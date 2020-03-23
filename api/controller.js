@@ -14,8 +14,7 @@ db.on('connect', function () {
   console.log('database connected')
 })
 
-
-
+//ROTAS FRONT END
 router.get('/', function(req, res, next) {
   //console.log('Login')
   res.sendFile(path.resolve('public/login.html'));
@@ -36,51 +35,7 @@ router.get('/dashboard', function(req, res, next) {
   res.sendFile(path.resolve('public/dashboard.html'));
 });
 
-//Rota geral
-router.post('/',function(req,res,next){
-  var token = '';
-  if(req.body){
-    if(req.body.token){
-      var idOb = '';
-      try{
-        idOb = mongojs.ObjectId(req.body.token)
-      }catch(err){
-        res.jsonp({
-          'status':'err',
-          'message':'Authentite failed',
-          'detail':'Token inválido'
-        })
-        return
-      }
-      universal.findOne({
-        _id: idOb
-      }, function(err, doc) {    
-        if (!doc) {
-          // we visited all docs in the collection
-            res.jsonp({
-              'status':'err',
-              'message':'Not found',
-              'detail':err
-            })
-            return
-        }
-        res.jsonp(doc)
-      }) 
-    }else{
-      res.jsonp({
-        'status':'err',
-        'message':'Authentite failed',
-        'detail':'Token expirou'
-      })
-    }
-  }else{
-    res.jsonp({
-      'status':'err',
-      'message':'Authentite failed',
-      'detail':'Token expirou'
-    })
-  }  
-})
+
 ///////////////////////////////////////////API////////////////////////////
 /* GET users listing. */
 router.get('/user/:id', function(req, res, next) {
@@ -101,5 +56,80 @@ router.get('/user/:id', function(req, res, next) {
     res.jsonp(doc)
   })  
 });
+
+router.post('/api/signin', function(req,res,next){
+  if(req.body.email && req.body.pass){
+    universal.findOne({
+      email: req.body.email
+    }, function(err, doc) {    
+      if (!doc) {
+        // we visited all docs in the collection
+          res.jsonp({
+            'status':'err',
+            'message':'Email não cadastrado!',
+            'detail':err
+          })
+          return
+      }else{
+        if(doc.pass == req.body.pass){
+          doc.pass = '';
+          res.jsonp({
+            'status':'ok',
+            'message':'',
+            'doc':doc
+          })
+        }else{
+          res.jsonp({
+            'status':'err',
+            'message':'Senha inválida'
+          })
+        }
+      }      
+    }) 
+  }else{
+    res.jsonp({
+      'status':'err',
+      'message':'Invalid Parameter'      
+    })
+  }
+})
+
+router.post('/api/signup', function(req,res,next){
+  if(req.body.email && req.body.pass && req.body.name&&req.body.last){
+    universal.findOne({
+      email: req.body.email
+    }, function(err, doc) {    
+      if (!doc) {
+        universal.insert(req.body,function(err,data){
+          if(err){
+            res.jsonp({
+              'status':'err',
+              'message':'Tente novamente mais tarde',
+              'detail':err
+            })
+          }else{
+            data.pass = '';
+            res.jsonp({
+              'status':'ok',
+              'message':'',              
+              'doc':data
+            })
+          }
+        })
+          
+      }else{        
+        res.jsonp({
+          'status':'err',
+          'message':'Usuário já cadastrado'
+        })        
+      }      
+    }) 
+  }else{
+    res.jsonp({
+      'status':'err',
+      'message':'Invalid Parameter'      
+    })
+  }
+})
 
 module.exports = router;

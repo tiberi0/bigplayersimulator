@@ -39,24 +39,24 @@
               <form class="user">
                 <div class="form-group row">
                   <div class="col-sm-6 mb-3 mb-sm-0">
-                    <input type="text" class="form-control form-control-user" id="exampleFirstName" placeholder="Nome">
+                    <input id="nameValue" type="text" class="form-control form-control-user" id="exampleFirstName" placeholder="Nome">
                   </div>
                   <div class="col-sm-6">
-                    <input type="text" class="form-control form-control-user" id="exampleLastName" placeholder="Sobrenome">
+                    <input id="lastNameValue" type="text" class="form-control form-control-user" id="exampleLastName" placeholder="Sobrenome">
                   </div>
                 </div>
                 <div class="form-group">
-                  <input type="email" class="form-control form-control-user" id="exampleInputEmail" placeholder="Email...">
+                  <input id="emailValue" type="email" class="form-control form-control-user" id="exampleInputEmail" placeholder="Email...">
                 </div>
                 <div class="form-group row">
                   <div class="col-sm-6 mb-3 mb-sm-0">
-                    <input type="password" class="form-control form-control-user" id="exampleInputPassword" placeholder="Senha">
+                    <input id="passValue" type="password" class="form-control form-control-user" id="exampleInputPassword" placeholder="Senha">
                   </div>
                   <div class="col-sm-6">
-                    <input type="password" class="form-control form-control-user" id="exampleRepeatPassword" placeholder="Repetir a senha">
+                    <input id="repeatPassValue" type="password" class="form-control form-control-user" id="exampleRepeatPassword" placeholder="Repetir a senha">
                   </div>
                 </div>
-                <a href="login.html" class="btn btn-primary btn-user btn-block">
+                <a href="#" class="btn btn-primary btn-user btn-block" onclick="signup()">
                   Registrar conta
                 </a>
                 <!-- <hr> -->
@@ -91,6 +91,7 @@
 
   <!-- Custom scripts for all pages-->
   <script src="js/sb-admin-2.min.js"></script>
+  <script src="js/basic.js"></script>
 
 </body>
 
