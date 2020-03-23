@@ -20,10 +20,14 @@ $(document).ready(function() {
   // executes when HTML-Document is loaded and DOM is ready
   //console.log("document is ready");
   var token = Cookies.get('token')
-  var docUser = atob(token)
-  if(docUser){
-    var jsonUser = JSON.parse(docUser);
-    $('#nameProfileUser').html(jsonUser.doc.name + ' ' + jsonUser.doc.last)
+  if(token){
+    var docUser = atob(token)
+    if(docUser){
+      var jsonUser = JSON.parse(docUser);
+      $('#nameProfileUser').html(jsonUser.doc.name + ' ' + jsonUser.doc.last)
+    }else{
+      window.location.replace('/');
+    }
   }else{
     window.location.replace('/');
   }
