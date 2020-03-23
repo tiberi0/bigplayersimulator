@@ -14,13 +14,11 @@ var qtdEmCarteira = 0;
 $('#valorDisponivel').html(kFormatter(valorDisponivel))
 $('#qtdEmCarteira').html(kFormatter(qtdEmCarteira))
 
-
-
 $(document).ready(function() {
   // executes when HTML-Document is loaded and DOM is ready
   //console.log("document is ready");
   var token = Cookies.get('token')
-  if(token){
+  if(token && token.length>0){
     var docUser = atob(token)
     if(docUser){
       var jsonUser = JSON.parse(docUser);
@@ -363,4 +361,9 @@ function kFormatter(num) {
       return Math.sign(num)*((Math.abs(num)/1000000).toFixed(1)) + ' mi'
     else 
       return Math.sign(num)*((Math.abs(num)/1000000000).toFixed(1)) + ' bi'
+}
+
+function logout(){
+  Cookies.set('token','')
+  window.location.replace('/')
 }
