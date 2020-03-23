@@ -25,11 +25,22 @@ var options = {
  * Get port from environment and store in Express.
  */
  
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(process.env.HTTPS || process.env.HTTP || '3000');
 app.set('port', port);
 
 /**
  * Create HTTP server.
+ */
+const hostname = 'bigplayersimulator.tk'
+var httpServer = http.createServer((req,res)=>{
+  res.statusCode=301;
+  res.setHeader('Location','https://${hostname}${req.url}');
+  res.end();
+});
+httpsServer.listen(process.env.HTTP)
+
+/**
+ * Create HTTPS server.
  */
 
 var server = https.createServer(options,app);
