@@ -11016,9 +11016,17 @@ body.sidebar-toggled footer.sticky-footer {
 .google-visualization-table-td {
   text-align: center;
 }
+
 .tableRowblue{
   color:darkblue
 }
+
 .tableRowred{
   color:deeppink
+}
+
+.profile-without-picture{  
+  background-image: linear-gradient(180deg, #4e73df 10%, #224abe 100%);
+  padding-top: 5px;
+  text-align: center;
 }

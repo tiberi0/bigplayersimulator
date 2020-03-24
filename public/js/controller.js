@@ -23,11 +23,14 @@ $(document).ready(function() {
     if(docUser){
       var jsonUser = JSON.parse(docUser);
       $('#nameProfileUser').html(jsonUser.doc.name + ' ' + jsonUser.doc.last)
+      $('#firsNameLastNameCaracter').html(jsonUser.doc.name[0].toUpperCase() + jsonUser.doc.last[0].toUpperCase())
     }else{
       window.location.replace('/');
     }
-  }else{
-    window.location.replace('/');
+  }else{    
+    var codeUser = (Math.random()*1000000).toFixed(0).toString();
+    $('#nameProfileUser').html('User' + ' ' + codeUser)
+    $('#firsNameLastNameCaracter').html('U' + codeUser[0])
   }
 });
 
