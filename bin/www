@@ -13,16 +13,16 @@ var fs = require('fs');
 require('dotenv/config');
 
 var options = {}
-if(process.env.AMB=="PRD"){
-  options = {
+// if(process.env.AMB=="PRD"){
+//   options = {
 
-    key: fs.readFileSync('/home/tiberio/.acme.sh/bigplayersimulator.tk/bigplayersimulator.tk.key'),
+//     key: fs.readFileSync('/home/tiberio/.acme.sh/bigplayersimulator.tk/bigplayersimulator.tk.key'),
    
-    cert: fs.readFileSync('/home/tiberio/.acme.sh/bigplayersimulator.tk/bigplayersimulator.tk.cer'),
+//     cert: fs.readFileSync('/home/tiberio/.acme.sh/bigplayersimulator.tk/bigplayersimulator.tk.cer'),
    
-    ca: fs.readFileSync ('/home/tiberio/.acme.sh/bigplayersimulator.tk/ca.cer') 
-   };
-}
+//     ca: fs.readFileSync ('/home/tiberio/.acme.sh/bigplayersimulator.tk/ca.cer') 
+//    };
+// }
 
 
 
@@ -110,10 +110,10 @@ function onListening() {
 
 // Redirect from http port 80 to https no PRD
 //var http = require('http');
-if(process.env.AMB == "PRD"){
-  http.createServer(function (req, res) {
-      res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
-      res.end();
-  }).listen(process.env.HTTP);
-  console.log('escutando HTTP na porta ' + process.env.HTTP)
-}
+// if(process.env.AMB == "PRD"){
+//   http.createServer(function (req, res) {
+//       res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+//       res.end();
+//   }).listen(process.env.HTTP);
+//   console.log('escutando HTTP na porta ' + process.env.HTTP)
+// }
