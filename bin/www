@@ -7,44 +7,26 @@
 var app = require('../app');
 var debug = require('debug')('bigplayersimulator:server');
 var http = require('http');
-var https = require('https');
-var fs = require('fs');
 
 require('dotenv/config');
-
-var options = {}
-// if(process.env.AMB=="PRD"){
-//   options = {
-
-//     key: fs.readFileSync('/home/tiberio/.acme.sh/bigplayersimulator.tk/bigplayersimulator.tk.key'),
-   
-//     cert: fs.readFileSync('/home/tiberio/.acme.sh/bigplayersimulator.tk/bigplayersimulator.tk.cer'),
-   
-//     ca: fs.readFileSync ('/home/tiberio/.acme.sh/bigplayersimulator.tk/ca.cer') 
-//    };
-// }
-
-
-
 /**
  * Get port from environment and store in Express.
  */
- 
-var port = normalizePort(process.env.HTTPS || process.env.HTTP || '3000');
+
+var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 /**
- * Create HTTPS server.
+ * Create HTTP server.
  */
 
-var server = (process.env.AMB=="LOCAL")? http.createServer(app): https.createServer(options,app);
+var server = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
  */
 
 server.listen(port);
-console.log("escutando "+ process.env.AMB+" na porta " + port)
 server.on('error', onError);
 server.on('listening', onListening);
 
@@ -107,13 +89,3 @@ function onListening() {
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
 }
-
-// Redirect from http port 80 to https no PRD
-//var http = require('http');
-// if(process.env.AMB == "PRD"){
-//   http.createServer(function (req, res) {
-//       res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
-//       res.end();
-//   }).listen(process.env.HTTP);
-//   console.log('escutando HTTP na porta ' + process.env.HTTP)
-// }
