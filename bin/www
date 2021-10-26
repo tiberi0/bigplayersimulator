@@ -7,12 +7,24 @@
 var app = require('../app');
 var debug = require('debug')('bigplayersimulator:server');
 var http = require('http');
+var fs = require('fs');
 //var https = require(https)
 
 require('dotenv/config');
 /**
  * Get port from environment and store in Express.
  */
+var options = {}
+if(process.env.AMB=="PRD"){
+  options = {
+
+    key: fs.readFileSync('/home/tiberio/.acme.sh/bigplayersimulator.ml/bigplayersimulator.ml.key'),
+
+    cert: fs.readFileSync('/home/tiberio/.acme.sh/bigplayersimulator.ml/bigplayersimulator.ml.cer'),
+
+    ca: fs.readFileSync ('/home/tiberio/.acme.sh/bigplayersimulator.ml/ca.cer')
+   };
+}
 
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
@@ -88,5 +100,12 @@ function onListening() {
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+  //debug('Listening on ' + bind);
+}
+
+if(process.env.AMB=="PRD"){
+http:createServer(function (req,res) {
+  res.writeHead(301,{"Location":"https://"+req.headers['host'] + req.url});
+  res.end();
+}).listen(process.env.HTTP);
 }
